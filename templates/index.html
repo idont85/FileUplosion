@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Sharing App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .download-btn {
+            display: block;
+            margin-top: 10px;
+            text-align: center;
+            color: white;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.9);
+        }
+
+        .modal-content {
+            margin: auto;
+            display: block;
+            width: 80%;
+            max-width: 800px;
+        }
+
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            color: #fff;
+            font-size: 30px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .file-link {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        img, iframe {
+            width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>File Sharing App</h1>
+
+        <form action="/upload" method="post" enctype="multipart/form-data">
+            <label for="file">Choose a file:</label>
+            <input type="file" name="file" id="file" accept=".txt, .pdf, .png, .jpg, .jpeg, .gif">
+            <input type="submit" value="Upload">
+        </form>
+
+        <h2>Files:</h2>
+        <ul>
+            {% for file in files %}
+                <li>
+                    <a href="#" class="file-link" onclick="openModal('{{ url_for('download_file', filename=file) }}', '{{ file }}')">
+                        {{ file }}
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+
+        <div id="fileModal" class="modal">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <div class="modal-content" id="modalContent"></div>
+            <a href="#" class="download-btn" id="downloadBtn" download>Download</a>
+        </div>
+    </div>
+
+    <script>
+        function openModal(fileUrl, fileName) {
+            var modal = document.getElementById('fileModal');
+            var modalContent = document.getElementById('modalContent');
+            var downloadBtn = document.getElementById('downloadBtn');
+
+            if (fileName.toLowerCase().endsWith('.png') || fileName.toLowerCase().endsWith('.jpg') || fileName.toLowerCase().endsWith('.jpeg') || fileName.toLowerCase().endsWith('.gif')) {
+                modalContent.innerHTML = '<img src="' + fileUrl + '" alt="Preview">';
+                downloadBtn.style.display = 'block';  // Show download button for image files
+            } else if (fileName.toLowerCase().endsWith('.pdf')) {
+                modalContent.innerHTML = '<p style="color: white; left: 50%;">This browser does not support viewing PDFs. You can <a style="color: #ADD8E6;" href="' + fileUrl + '">download the PDF</a> instead.</p>';
+                downloadBtn.style.display = 'none';  // Hide download button for unsupported PDFs
+            } else if (fileName.toLowerCase().endsWith('.docx')) {
+                modalContent.innerHTML = '<iframe src="https://view.officeapps.live.com/op/view.aspx?src=' + fileUrl + '" width="100%" height="600px" frameborder="0">This browser does not support viewing DOCX files. You can <a href="' + fileUrl + '">download the DOCX</a> instead.</iframe>';
+                downloadBtn.style.display = 'block';  // Show download button for DOCX files
+            }
+
+            downloadBtn.href = fileUrl;
+            modal.style.display = 'block';
+        }
+
+        function closeModal() {
+            var modal = document.getElementById('fileModal');
+            modal.style.display = 'none';
+            var modalContent = document.getElementById('modalContent');
+            modalContent.innerHTML = '';
+            var downloadBtn = document.getElementById('downloadBtn');
+            downloadBtn.style.display = 'block';  // Reset display property for the download button
+            downloadBtn.href = '';  // Reset the download link when closing the modal
+        }
+
+        // Close the modal if the user clicks outside of it
+        window.onclick = function(event) {
+            var modal = document.getElementById('fileModal');
+            if (event.target == modal) {
+                closeModal();
+            }
+        };
+    </script>
+</body>
+</html>
